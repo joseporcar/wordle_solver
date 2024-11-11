@@ -6,8 +6,13 @@ use hard_coded_words::WORDS;
 mod hard_coded_words_uniques;
 use hard_coded_words_uniques::UNIQUE_WORDS;
 
-const OPENER_COUNT: usize = 3; // How many openers to spew
-const THRESHHOLD: u8 = 15;
+const OPENER_COUNT: usize = 4; // How many openers to spew
+const THRESHHOLD: u8 = 20;
+
+// TODO 
+// make enum for Unique or not
+// make special update methods for unique or not
+// the uniques will have special checks for first letter or so before doing the sets
 
 pub struct WordSet {
     indexes: [usize; OPENER_COUNT],
