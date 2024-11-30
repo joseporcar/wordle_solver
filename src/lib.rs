@@ -2,9 +2,11 @@ use std::collections::HashSet;
 use std::io::{Read, Write};
 use std::fs::File;
 mod hard_coded_words;
-use hard_coded_words::WORDS;
 mod hard_coded_words_uniques;
 use hard_coded_words_uniques::UNIQUE_WORDS;
+
+// the set of words to use, change depending on purpose
+const WORDS: [&[u8; 5]; UNIQUE_WORDS.len()] = UNIQUE_WORDS;
 
 const OPENER_COUNT: usize = 4; // How many openers to spew
 const THRESHHOLD: u8 = 20;
@@ -31,7 +33,7 @@ impl WordSet  {
     fn update_index(&mut self) -> Result<(),()> {
         let mut i = OPENER_COUNT - 1;
 
-        while i > 0 && self.indexes[i] + 1 > UNIQUE_WORDS.len() - OPENER_COUNT + i {
+        while i > 0 && self.indexes[i] + 1 > WORDS.len() - OPENER_COUNT + i {
             i -= 1;
         }
         self.indexes[i] += 1;
@@ -39,22 +41,45 @@ impl WordSet  {
             i += 1;
             self.indexes[i] = self.indexes[i-1] + 1;
         }
-        if self.indexes[0] < UNIQUE_WORDS.len() - OPENER_COUNT + i - 1 {
+        if self.indexes[0] < WORDS.len() - OPENER_COUNT + i - 1 {
             Ok(())
         }
         else {Err(())}
     }
+
+    // fn update_index_no_first_letter_repeats(&mut self) -> Result<(), ()> {
+    //     let mut i = OPENER_COUNT - 1;
+        
+    //     // Check if the index is going to overflow to change the previous digit. 
+    //     while i > 0 && self.indexes[i] + 1 > WORDS.len() - OPENER_COUNT + i {
+    //         i -= 1;
+    //     }
+
+    //     self.indexes[i] += 1;
+
+    //     // Resetting indexes after the.. idk how to explain its like going from 99 to 100, this puts the zeroes
+    //     while i < OPENER_COUNT - 1 {
+    //         i += 1;
+    //         self.indexes[i] = self.indexes[i-1] + 1;
+    //     }
+    //     if self.indexes[0] < WORDS.len() - OPENER_COUNT + i - 1 {
+    //         Ok(())
+    //     }
+    //     else {Err(())}
+    // }
 
     pub fn update(&mut self) -> Result<(), ()> {
         self.update_index()?;
         Ok(())
     }
 
+
+
     // How many unique letters does a set have
     fn uniques(&mut self) -> u8 {
         self.hash.clear();
         for i in self.indexes {
-            for c in UNIQUE_WORDS[i] {
+            for c in WORDS[i] {
                 self.hash.insert(*c);
             }
         }
@@ -65,11 +90,26 @@ impl WordSet  {
         self.uniques() >= THRESHHOLD
     }
 
+    // like the uniques function but does an early return as soon as there is a repeated letter
+    pub fn is_perfectly_unique(&mut self) -> bool {
+        self.hash.clear();
+        let mut count= 0; 
+        for i in self.indexes {
+            for c in WORDS[i] {
+                self.hash.insert(*c);
+                count += 1;
+                if self.hash.len() != count {
+                    return false 
+                }
+            }
+        }
+        true
+    }
 }
 
 impl ToString for WordSet {
     fn to_string(&self) -> String {
-        self.indexes.map(|i| UNIQUE_WORDS[i]).map(|&x| String::from_utf8(x.into()).unwrap()).join(" ")
+        self.indexes.map(|i| WORDS[i]).map(|&x| String::from_utf8(x.into()).unwrap()).join(" ")
     }
 }
 

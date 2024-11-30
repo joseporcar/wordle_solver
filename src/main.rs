@@ -1,5 +1,5 @@
 
-use wordle_solver::{WordSet};
+use wordle_solver::WordSet;
 
 
 fn main() {
@@ -7,7 +7,10 @@ fn main() {
     let mut count = 0;
     while let Ok(_) = big.update() {
         count += 1;
-        if big.passes_threshold() {
+        if big.is_perfectly_unique() {
+            println!("{}", big.to_string())
+        }
+        if count % 10000000 == 0 {
             println!("{}", big.to_string())
         }
     }
