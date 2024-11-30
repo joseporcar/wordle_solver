@@ -17,22 +17,14 @@ const THRESHHOLD: u8 = 20;
 
 pub struct WordSet {
     indexes: [usize; OPENER_COUNT],
-    combined: [u8; OPENER_COUNT * 5]
+    hash: HashSet<u8>
 }
 
 impl WordSet  {
     pub fn new() -> Self {
         WordSet {
             indexes: (0..OPENER_COUNT).collect::<Vec<usize>>().try_into().unwrap(),
-            combined: (0..OPENER_COUNT).map(|i| UNIQUE_WORDS[i]).cloned().collect::<Vec<[u8; 5]>>().concat().try_into().unwrap(),
-        }
-    }
-    
-    fn join_set(&mut self) {
-        for p in 0..OPENER_COUNT {
-            for i in 0..5 {
-                self.combined[(p*5) + i ] = self.parts[p][i];
-            }
+            hash: HashSet::new(),
         }
     }
 
@@ -53,58 +45,56 @@ impl WordSet  {
         else {Err(())}
     }
 
-    fn update(&mut self) -> Result<(), ()> {
+    pub fn update(&mut self) -> Result<(), ()> {
         self.update_index()?;
-        self.join_set();
         Ok(())
     }
-}
-impl <'a> Iterator for WordSet {
-    type Item = [u8; OPENER_COUNT * 5];
-    fn next(&mut self) -> Option<Self::Item> {
-        self.update().ok()?;
 
-        Some(self.combined)
+    // How many unique letters does a set have
+    fn uniques(&mut self) -> u8 {
+        self.hash.clear();
+        for i in self.indexes {
+            for c in UNIQUE_WORDS[i] {
+                self.hash.insert(*c);
+            }
+        }
+        self.hash.len() as u8
+    }
+
+    pub fn passes_threshold(&mut self) -> bool {
+        self.uniques() >= THRESHHOLD
+    }
+
+}
+
+impl ToString for WordSet {
+    fn to_string(&self) -> String {
+        self.indexes.map(|i| UNIQUE_WORDS[i]).map(|&x| String::from_utf8(x.into()).unwrap()).join(" ")
     }
 }
 
-pub fn passes_threshold(set: [u8; OPENER_COUNT * 5], hash: &mut HashSet<u8>) -> bool {
-    uniques(&set, hash) >= THRESHHOLD
-}
-
-fn no_clear_uniques(char: u8, hash: &mut HashSet<u8>) -> u8 {
-    todo!()
-}
-// How many unique letters does a set have
-fn uniques(word: &[u8; OPENER_COUNT * 5], hash: &mut HashSet<u8>) -> u8 {
-    hash.clear();
-    for c in word {
-        hash.insert(*c);
-    }
-    hash.len() as u8
-}
 
 // The following should never be called.  writes the words to hard_coded file.. requires additional work
-pub fn _hardcodewords() {
-    use std::fs::OpenOptions;
-    let mut buff = "pub const WORDS: [&[u8;5]; 14855] = [".to_owned();
-    let mut file = File::open("data/words.txt").unwrap();
-    let mut target = OpenOptions::new().write(true).open("src/hard_coded_words.rs").unwrap();
-    file.read_to_string(&mut buff).unwrap();
-    for word in buff.split_ascii_whitespace() {
-        target.write(format!("b\"{word}\",").as_bytes()).unwrap();
-    };
-}
-pub fn _hardcodewords_uniques() {
-    use std::fs::OpenOptions;
-    let mut buff = String::new();
-    let mut file = File::open("data/words.txt").unwrap();
-    let mut target = OpenOptions::new().write(true).open("src/hard_coded_words_uniques.rs").unwrap();
-    target.write(b"pub const UNIQUE_WORDS: [&[u8;5]; 14855] = [").unwrap();
-    file.read_to_string(&mut buff).unwrap();
-    let mut hash = HashSet::new();
-    for word in buff.split_ascii_whitespace().filter(|&word| uniques(word.as_bytes().repeat(3)[0..15].try_into().unwrap(), &mut hash) == 5) {
-        target.write(format!("b\"{word}\",").as_bytes()).unwrap();
-    };
-    target.write(b"];").unwrap();
-}
+// pub fn _hardcodewords() {
+//     use std::fs::OpenOptions;
+//     let mut buff = "pub const WORDS: [&[u8;5]; 14855] = [".to_owned();
+//     let mut file = File::open("data/words.txt").unwrap();
+//     let mut target = OpenOptions::new().write(true).open("src/hard_coded_words.rs").unwrap();
+//     file.read_to_string(&mut buff).unwrap();
+//     for word in buff.split_ascii_whitespace() {
+//         target.write(format!("b\"{word}\",").as_bytes()).unwrap();
+//     };
+// }
+// pub fn _hardcodewords_uniques() {
+//     use std::fs::OpenOptions;
+//     let mut buff = String::new();
+//     let mut file = File::open("data/words.txt").unwrap();
+//     let mut target = OpenOptions::new().write(true).open("src/hard_coded_words_uniques.rs").unwrap();
+//     target.write(b"pub const UNIQUE_WORDS: [&[u8;5]; 14855] = [").unwrap();
+//     file.read_to_string(&mut buff).unwrap();
+//     let mut hash = HashSet::new();
+//     for word in buff.split_ascii_whitespace().filter(|&word| uniques(word.as_bytes().repeat(3)[0..15].try_into().unwrap(), &mut hash) == 5) {
+//         target.write(format!("b\"{word}\",").as_bytes()).unwrap();
+//     };
+//     target.write(b"];").unwrap();
+// }
