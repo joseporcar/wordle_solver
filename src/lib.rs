@@ -19,7 +19,9 @@ const THRESHHOLD: u8 = 20;
 
 pub struct WordSet {
     indexes: [usize; OPENER_COUNT],
-    hash: HashSet<u8>
+    hash: HashSet<u8>,
+    buff: [u8; OPENER_COUNT*5],
+    count: usize
 }
 
 impl WordSet  {
@@ -27,6 +29,8 @@ impl WordSet  {
         WordSet {
             indexes: (0..OPENER_COUNT).collect::<Vec<usize>>().try_into().unwrap(),
             hash: HashSet::new(),
+            buff: [0; OPENER_COUNT*5],
+            count: 0
         }
     }
 
@@ -90,17 +94,33 @@ impl WordSet  {
         self.uniques() >= THRESHHOLD
     }
 
+    // // like the uniques function but does an early return as soon as there is a repeated letter
+    // pub fn is_perfectly_unique(&mut self) -> bool {
+    //     self.hash.clear();
+    //     let mut count= 0; 
+    //     for i in self.indexes {
+    //         for c in WORDS[i] {
+    //             self.hash.insert(*c);
+    //             count += 1;
+    //             if self.hash.len() != count {
+    //                 return false 
+    //             }
+    //         }
+    //     }
+    //     true
+    // }
+
     // like the uniques function but does an early return as soon as there is a repeated letter
     pub fn is_perfectly_unique(&mut self) -> bool {
-        self.hash.clear();
-        let mut count= 0; 
+        self.buff.fill(0);
+        self.count = 0;
         for i in self.indexes {
             for c in WORDS[i] {
-                self.hash.insert(*c);
-                count += 1;
-                if self.hash.len() != count {
+                if self.buff.contains(c) {
                     return false 
                 }
+                self.buff[self.count] = *c;
+                self.count += 1;
             }
         }
         true
