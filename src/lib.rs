@@ -13,10 +13,10 @@ const THRESHHOLD: u8 = 20;
 // make enum for Unique or not
 // make special update methods for unique or not
 // the uniques will have special checks for first letter or so before doing the sets
+// changing to not only pass around indexes instead of the words
 
 pub struct WordSet {
     indexes: [usize; OPENER_COUNT],
-    parts: [&'static [u8; 5]; OPENER_COUNT],
     combined: [u8; OPENER_COUNT * 5]
 }
 
@@ -24,7 +24,6 @@ impl WordSet  {
     pub fn new() -> Self {
         WordSet {
             indexes: (0..OPENER_COUNT).collect::<Vec<usize>>().try_into().unwrap(),
-            parts: (0..OPENER_COUNT).map(|i| &UNIQUE_WORDS[i]).cloned().collect::<Vec<&[u8; 5]>>().try_into().unwrap(),
             combined: (0..OPENER_COUNT).map(|i| UNIQUE_WORDS[i]).cloned().collect::<Vec<[u8; 5]>>().concat().try_into().unwrap(),
         }
     }
@@ -53,17 +52,9 @@ impl WordSet  {
         }
         else {Err(())}
     }
-    fn update_parts(&mut self) {
-        for i in 0..OPENER_COUNT {
-            if self.indexes[i] == 14855 {
-                dbg!(self.indexes);
-            }
-            self.parts[i] = UNIQUE_WORDS[self.indexes[i]]
-        }
-    }
+
     fn update(&mut self) -> Result<(), ()> {
         self.update_index()?;
-        self.update_parts();
         self.join_set();
         Ok(())
     }
@@ -81,7 +72,7 @@ pub fn passes_threshold(set: [u8; OPENER_COUNT * 5], hash: &mut HashSet<u8>) -> 
     uniques(&set, hash) >= THRESHHOLD
 }
 
-fn lazy_uniques(hash: &mut HashSet<u8>) -> u8 {
+fn no_clear_uniques(char: u8, hash: &mut HashSet<u8>) -> u8 {
     todo!()
 }
 // How many unique letters does a set have
