@@ -37,10 +37,14 @@ impl WordSet  {
     fn update_index(&mut self) -> Result<(),()> {
         let mut i = OPENER_COUNT - 1;
 
+        // Check if the index is going to overflow to change the previous digit. 
         while i > 0 && self.indexes[i] + 1 > WORDS.len() - OPENER_COUNT + i {
             i -= 1;
         }
+
         self.indexes[i] += 1;
+
+        // Resetting indexes after the.. idk how to explain its like going from 99 to 100, this puts the zeroes
         while i < OPENER_COUNT - 1 {
             i += 1;
             self.indexes[i] = self.indexes[i-1] + 1;
@@ -51,26 +55,33 @@ impl WordSet  {
         else {Err(())}
     }
 
-    // fn update_index_no_first_letter_repeats(&mut self) -> Result<(), ()> {
-    //     let mut i = OPENER_COUNT - 1;
+    // returns the index corresponding to the next beginning letter. Example if the input is abing, this would skip past abeys and the rest of as straight to bachs
+    fn next_letter(index: usize) -> usize {
+        match index {
+            (0..) => todo!()
+        }
+    }
+
+    fn update_index_no_first_letter_repeats(&mut self) -> Result<(), ()> {
+        let mut i = OPENER_COUNT - 1;
         
-    //     // Check if the index is going to overflow to change the previous digit. 
-    //     while i > 0 && self.indexes[i] + 1 > WORDS.len() - OPENER_COUNT + i {
-    //         i -= 1;
-    //     }
+        // Check if the index is going to overflow to change the previous digit. 
+        while i > 0 && self.indexes[i] + 1 > WORDS.len() - OPENER_COUNT + i {
+            i -= 1;
+        }
 
-    //     self.indexes[i] += 1;
+        self.indexes[i] += 1;
 
-    //     // Resetting indexes after the.. idk how to explain its like going from 99 to 100, this puts the zeroes
-    //     while i < OPENER_COUNT - 1 {
-    //         i += 1;
-    //         self.indexes[i] = self.indexes[i-1] + 1;
-    //     }
-    //     if self.indexes[0] < WORDS.len() - OPENER_COUNT + i - 1 {
-    //         Ok(())
-    //     }
-    //     else {Err(())}
-    // }
+        // Resetting indexes after the.. idk how to explain its like going from 99 to 100, this puts the zeroes
+        while i < OPENER_COUNT - 1 {
+            i += 1;
+            self.indexes[i] = self.indexes[i-1] + 1;
+        }
+        if self.indexes[0] < WORDS.len() - OPENER_COUNT + i - 1 {
+            Ok(())
+        }
+        else {Err(())}
+    }
 
     pub fn update(&mut self) -> Result<(), ()> {
         self.update_index()?;
@@ -93,22 +104,6 @@ impl WordSet  {
     pub fn passes_threshold(&mut self) -> bool {
         self.uniques() >= THRESHHOLD
     }
-
-    // // like the uniques function but does an early return as soon as there is a repeated letter
-    // pub fn is_perfectly_unique(&mut self) -> bool {
-    //     self.hash.clear();
-    //     let mut count= 0; 
-    //     for i in self.indexes {
-    //         for c in WORDS[i] {
-    //             self.hash.insert(*c);
-    //             count += 1;
-    //             if self.hash.len() != count {
-    //                 return false 
-    //             }
-    //         }
-    //     }
-    //     true
-    // }
 
     // like the uniques function but does an early return as soon as there is a repeated letter
     pub fn is_perfectly_unique(&mut self) -> bool {
@@ -158,3 +153,8 @@ impl ToString for WordSet {
 //     };
 //     target.write(b"];").unwrap();
 // }
+
+// This method is to print all of the indexes of letter changes in owrds (from airplane and airbus to base and bus)
+pub fn _find_indexes_of_beginning_char() {
+    WORDS.split_first()
+}
